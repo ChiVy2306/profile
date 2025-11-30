@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Hoshimiya~</title>
-    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -14,11 +14,21 @@
         <div class="nav-content">
             <a href="#aboutme" class="nav-link">About Me</a>
             <a href="#github" class="nav-link">My Projects</a>
-            <a href="clone/index.html" class="nav-link">No GUI mode</a>
+            <a href="phone-terminal/index.html" class="nav-link">No GUI mode</a>
             <div class="language-switcher">
                 <button class="lang-btn active" data-lang="vi">🇻🇳</button>
                 <button class="lang-btn" data-lang="en">🇺🇸</button>
                 <button class="lang-btn" data-lang="ja">🇯🇵</button>
+            </div>
+        </div>
+        <!-- Navbar hide hint -->
+        <div class="navbar-hint" id="navbar-hint">
+            <div class="hint-content">
+                <span class="hint-icon">⬇️</span>
+                <span class="hint-text" data-vi="Cuộn xuống để ẩn navbar" data-en="Scroll down to hide navbar" data-ja="下にスクロールしてナビゲーションバーを非表示">Scroll down to hide navbar</span>
+            </div>
+            <div class="hint-demo">
+                <div class="demo-arrow"></div>
             </div>
         </div>
     </nav>
@@ -26,7 +36,7 @@
     <div id="container">
         <header>
             <div id="profile-pic">
-                <img src="img/heo.jpg" alt="Profile Picture">
+                <img src="../img/heo.jpg" alt="Profile Picture">
                 <div class="avatar-deco" aria-hidden="true"></div>
             </div>
             <div id="smol-aboutme">
@@ -82,7 +92,7 @@
                     <div class="love-content">
                         <span class="heart-beat">❤️</span>
                         <span class="easter-egg-img-container" id="easter-egg-img" style="display: none;">
-                            <img src="img/87075-dorocheeknom(1).png" alt="Easter Egg" class="easter-egg-img">
+                            <img src="../img/87075-dorocheeknom(1).png" alt="Easter Egg" class="easter-egg-img">
                         </span>
                         <span class="status-text" data-vi="thằng béo chúa của công chúa nhỏ" data-en="Taken" data-ja="彼女あり">thằng béo chúa của công chúa nhỏ</span>
                     </div>
@@ -196,8 +206,156 @@
         </footer>
     </div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/script.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        // Mobile-specific optimizations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Disable custom cursor initialization on mobile
+            if (window.initCustomCursor) {
+                const originalInit = window.initCustomCursor;
+                window.initCustomCursor = function() {
+                    if (window.innerWidth > 768) {
+                        originalInit();
+                    }
+                };
+            }
+            
+            // Disable stars on mobile (performance)
+            if (window.createStars) {
+                const originalCreateStars = window.createStars;
+                window.createStars = function() {
+                    if (window.innerWidth > 768) {
+                        originalCreateStars();
+                    }
+                };
+            }
+            
+            // Smooth scroll for all anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#' && href.length > 1) {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            const navbar = document.getElementById('navbar');
+                            const navbarHeight = navbar ? navbar.offsetHeight : 0;
+                            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 10;
+                            
+                            window.scrollTo({
+                                top: targetPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Hide/show navbar on scroll
+            let lastScrollTop = 0;
+            const navbar = document.getElementById('navbar');
+            let scrollTimeout;
+            
+            function handleScroll() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Clear timeout if user scrolls quickly
+                clearTimeout(scrollTimeout);
+                
+                if (scrollTop > 100) { // Only hide after scrolling past 100px
+                    if (scrollTop > lastScrollTop) {
+                        // Scrolling down - hide navbar
+                        navbar.classList.remove('visible');
+                        navbar.classList.add('hidden');
+                    } else {
+                        // Scrolling up - show navbar
+                        navbar.classList.remove('hidden');
+                        navbar.classList.add('visible');
+                    }
+                } else {
+                    // At top of page - always show
+                    navbar.classList.remove('hidden');
+                    navbar.classList.add('visible');
+                }
+                
+                lastScrollTop = scrollTop;
+                
+                // Always show navbar after scrolling stops for a moment
+                scrollTimeout = setTimeout(() => {
+                    navbar.classList.remove('hidden');
+                    navbar.classList.add('visible');
+                }, 1500);
+            }
+            
+            // Throttle scroll events for better performance
+            let ticking = false;
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        handleScroll();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+            
+            // Initialize navbar as visible
+            navbar.classList.add('visible');
+            
+            // Show navbar hide hint
+            const navbarHint = document.getElementById('navbar-hint');
+            let hintShown = sessionStorage.getItem('navbarHintShown');
+            
+            if (!hintShown && navbarHint) {
+                // Show hint after a short delay
+                setTimeout(() => {
+                    navbarHint.classList.add('show');
+                }, 1000);
+                
+                // Hide hint after user scrolls or after 8 seconds
+                let hintTimeout = setTimeout(() => {
+                    hideHint();
+                }, 8000);
+                
+                function hideHint() {
+                    navbarHint.classList.remove('show');
+                    navbarHint.classList.add('hidden');
+                    sessionStorage.setItem('navbarHintShown', 'true');
+                    clearTimeout(hintTimeout);
+                }
+                
+                // Hide hint when user scrolls
+                let scrollListener = function() {
+                    hideHint();
+                    window.removeEventListener('scroll', scrollListener);
+                };
+                window.addEventListener('scroll', scrollListener, { once: true, passive: true });
+                
+                // Update hint text based on language
+                function updateHintText() {
+                    const hintText = navbarHint.querySelector('.hint-text');
+                    if (hintText) {
+                        const lang = currentLang || 'en';
+                        const textKey = `data-${lang}`;
+                        if (hintText.hasAttribute(textKey)) {
+                            hintText.textContent = hintText.getAttribute(textKey);
+                        }
+                    }
+                }
+                
+                // Update hint text on language change
+                const originalSwitchLanguage = window.switchLanguage;
+                if (originalSwitchLanguage) {
+                    window.switchLanguage = function(lang) {
+                        originalSwitchLanguage(lang);
+                        updateHintText();
+                    };
+                }
+                
+                updateHintText();
+            }
+        });
+    </script>
 </body>
 
 </html>

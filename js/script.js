@@ -498,6 +498,26 @@ async function fetchDiscordActivity(isFirstLoad = false) {
 }
 
 /**
+ * Toggles the easter egg visibility based on language
+ * Only shows in Vietnamese
+ * @param {string} lang - Language code ('vi', 'en', 'ja')
+ */
+function toggleEasterEgg(lang) {
+    const heartBeat = document.querySelector('.heart-beat');
+    const easterEggImg = document.getElementById('easter-egg-img');
+    
+    if (lang === 'vi') {
+        // Hide heart, show image
+        if (heartBeat) heartBeat.style.display = 'none';
+        if (easterEggImg) easterEggImg.style.display = 'flex';
+    } else {
+        // Show heart, hide image
+        if (heartBeat) heartBeat.style.display = 'block';
+        if (easterEggImg) easterEggImg.style.display = 'none';
+    }
+}
+
+/**
  * Switches the UI language and updates all translatable elements
  * @param {string} lang - Language code ('vi', 'en', 'ja')
  */
@@ -537,6 +557,9 @@ function switchLanguage(lang) {
     if (window.refreshTerminalFAQ) {
         window.refreshTerminalFAQ();
     }
+
+    // Show/hide easter egg based on language (only Vietnamese)
+    toggleEasterEgg(lang);
 
     document.documentElement.lang = lang;
 }
@@ -657,6 +680,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     fetchDiscordActivity(true);
     setInterval(() => fetchDiscordActivity(false), 30000);
+
+    // Initialize easter egg visibility based on current language
+    toggleEasterEgg(currentLang);
 
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
